@@ -32,6 +32,8 @@ export interface Article {
   id: string; // Filename
   title: string;
   content: string; // Markdown content
+  tags?: string[];
+  aliases?: string[];
   createdAt: string;
   updatedAt: string;
 }

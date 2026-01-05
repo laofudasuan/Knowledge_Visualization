@@ -1,20 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/mock';
 import { Article } from '../types';
-import { Plus, FileText, Calendar, Edit2, Save, ArrowLeft } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import { cn } from '../lib/utils';
+import { Plus, FileText, Calendar } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const Articles: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [articles, setArticles] = useState<Article[]>([]);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
 
   useEffect(() => {
     loadArticles();
@@ -30,101 +24,15 @@ const Articles: React.FC = () => {
       id: `article-${Date.now()}`,
       title: 'New Article',
       content: '# New Article\n\nStart writing here...',
+      tags: [],
+      aliases: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await api.articles.save(newArticle);
-    setArticles([newArticle, ...articles]);
-    setSelectedArticle(newArticle);
-    setIsEditing(true);
-    setEditContent(newArticle.content);
+    // Navigate to the new article
+    navigate(`/articles/${newArticle.id}`);
   };
-
-  const handleSave = async () => {
-    if (!selectedArticle) return;
-    const updatedArticle = {
-      ...selectedArticle,
-      content: editContent,
-      title: editContent.split('\n')[0].replace('# ', '') || selectedArticle.title,
-      updatedAt: new Date().toISOString(),
-    };
-    await api.articles.save(updatedArticle);
-    setSelectedArticle(updatedArticle);
-    setIsEditing(false);
-    loadArticles();
-  };
-
-  if (selectedArticle) {
-    return (
-      <div className={cn("mx-auto animate-in slide-in-from-right-4 duration-300", isEditing ? "max-w-7xl" : "max-w-4xl")}>
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => setSelectedArticle(null)}
-            className="flex items-center text-gray-500 hover:text-black transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            {t('articles.back')}
-          </button>
-          <div className="flex space-x-2">
-            {isEditing ? (
-              <button
-                onClick={handleSave}
-                className="flex items-center px-4 py-2 bg-[#007AFF] text-white rounded-full hover:bg-[#0077ED] transition-colors shadow-md"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {t('articles.save')}
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setIsEditing(true);
-                  setEditContent(selectedArticle.content);
-                }}
-                className="flex items-center px-4 py-2 bg-white text-black border border-gray-200 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                <Edit2 className="w-4 h-4 mr-2" />
-                {t('articles.edit')}
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[60vh]">
-          {isEditing ? (
-            <div className="flex flex-col md:flex-row h-[75vh]">
-              <div className="w-full md:w-1/2 h-full border-b md:border-b-0 md:border-r border-gray-100">
-                 <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full h-full p-8 focus:outline-none font-mono text-sm resize-none bg-gray-50/30"
-                  placeholder={t('articles.placeholder')}
-                />
-              </div>
-              <div className="w-full md:w-1/2 h-full overflow-y-auto bg-white">
-                <div className="p-8 prose prose-lg max-w-none prose-headings:font-bold prose-a:text-[#007AFF]">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm, remarkMath]} 
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {editContent}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-8 prose prose-lg max-w-none prose-headings:font-bold prose-a:text-[#007AFF]">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm, remarkMath]} 
-                rehypePlugins={[rehypeKatex]}
-              >
-                {selectedArticle.content}
-              </ReactMarkdown>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -146,7 +54,7 @@ const Articles: React.FC = () => {
         {articles.map((article) => (
           <div
             key={article.id}
-            onClick={() => setSelectedArticle(article)}
+            onClick={() => window.open(`/articles/${article.id}`, '_blank')}
             className="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer hover:-translate-y-1"
           >
             <div className="flex items-start justify-between mb-4">

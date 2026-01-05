@@ -132,7 +132,11 @@ export const api = {
     return [
       ...graphs.filter(g => g.id.toLowerCase().includes(lowerQuery) || g.aliases.some(a => a.toLowerCase().includes(lowerQuery)))
         .map(g => ({ type: 'graph', id: g.id, title: g.id } as const)),
-      ...articles.filter(a => a.title.toLowerCase().includes(lowerQuery))
+      ...articles.filter(a => 
+        a.title.toLowerCase().includes(lowerQuery) ||
+        a.tags?.some(t => t.toLowerCase().includes(lowerQuery)) ||
+        a.aliases?.some(al => al.toLowerCase().includes(lowerQuery))
+      )
         .map(a => ({ type: 'article', id: a.id, title: a.title } as const)),
       ...problems.filter(p => p.title.toLowerCase().includes(lowerQuery))
         .map(p => ({ type: 'problem', id: p.id, title: p.title } as const)),
